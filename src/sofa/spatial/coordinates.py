@@ -22,7 +22,15 @@ from .. import access
 import numpy as np
 
 # for coordinate transformations
-from scipy.spatial.transform import Rotation  ## requires scipy 1.2.0
+from scipy.spatial.transform import Rotation
+
+
+try:
+    # SciPy >=1.4
+    R_from_matrix = Rotation.from_matrix
+except AttributeError:    
+    # SciPy >=1.2, < 1.6
+    R_from_matrix = Rotation.from_dcm
 
 
 def sph2cart(alpha, beta, r):
@@ -107,7 +115,7 @@ def _rotation_from_view_up(view, up):
         view = np.repeat(view, ulen, axis=0)
         up = np.repeat(up, vlen, axis=0)
     y_axis = np.cross(up, view)
-    return Rotation.from_dcm(np.moveaxis(np.asarray([view, y_axis, up]), 0, -1))
+    return R_from_matrix(np.moveaxis(np.asarray([view, y_axis, up]), 0, -1))
 
 
 def _get_object_transform(ref_object):
